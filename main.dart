@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_complete_guide/answer.dart';
-import 'package:flutter_complete_guide/question.dart';
+import 'package:flutter_complete_guide/quiz.dart';
+import 'package:flutter_complete_guide/result.dart';
 
 /// int num; --> will be an error. should set a def value
 int num = 0;
@@ -50,8 +50,11 @@ class _MyAppState extends State<MyApp> {
   /// private class = _MyAppState
   /// internal data / private property = used _ "underscore" ONLY CAN BE USED IN FILE
   var _questionIndex = 0;
+  var _totalScore = 0;
 
-  String _answerQuestion() {
+  void _answerQuestion(int score) {
+    _totalScore = _totalScore + score;
+
     //setState notify the flutter that the internal state of this object has changed, required UI rebuild for those widget that hold this variable
     //func force flutter to re-build / re-render the widget, will not redraw the whole widget tree--> but only the Text widget !
     setState(() {
@@ -59,7 +62,14 @@ class _MyAppState extends State<MyApp> {
     });
     print('Ni jawapanya!' + _questionIndex.toString());
     print(_questionIndex);
-    return 'Ni jawapanya!' + _questionIndex.toString();
+  }
+
+  void _resetQuiz() {
+    //will rebuild build Widget
+    setState(() {
+      _questionIndex = 0;
+      _totalScore = 0;
+    });
   }
 
   @override
@@ -68,21 +78,34 @@ class _MyAppState extends State<MyApp> {
     /// const - KNOW THE VALUE & VALUE CANNOT BE CHANGED during COMPILE TIME CONST! NOT RUNTIMES CONST!
     /// final - DON'T KNOW THE VALUE (not logged in code) but initial, dynamic value can be assigned during RUNTIME TIME then CANNOT BE CHANGED after that.
     ///
-    /// const questions = variable into const, if we DONT WANT ASSIGN questions VALUE TO CHANGE
+    /// const _questions = variable into const, if we DONT WANT ASSIGN _questions VALUE TO CHANGE
     /// value into const =
-    const questions = [
+    const _questions = [
       ///the value of the map can be anything !
       {
-        'questionText': 'What is your fav color?',
-        'answers': ['Black', 'Red', 'Blue']
+        'questionText': 'What is your husband best fav food?',
+        'answers': [
+          {'text': 'Ayam Penyet', 'score': 100},
+          {'text': 'Nasi Ayam', 'score': 70},
+          {'text': 'Nasi Goreng', 'score': 20},
+        ]
       },
       {
-        'questionText': 'What is your fav animal?',
-        'answers': ['Rabbit', 'Snake', 'Dog']
+        'questionText': 'What is your husband fav color ?',
+        'answers': [
+          {'text': 'Blue', 'score': 100},
+          {'text': 'Red', 'score': 30},
+          {'text': 'Black', 'score': 80},
+        ]
       },
       {
-        'questionText': 'What is your fav hobbies?',
-        'answers': ['Football', 'Badminton', 'Dance', 'Bicycle', 'Racing']
+        'questionText': 'What is your husband fav Sport?',
+        'answers': [
+          {'text': 'Badminton', 'score': 100},
+          {'text': 'Dance', 'score': 50},
+          {'text': 'Skipping', 'score': 80},
+          {'text': 'Ping Pong', 'score': 90}
+        ]
       }
     ];
 
@@ -98,9 +121,9 @@ class _MyAppState extends State<MyApp> {
 
     /** NOTE:
         VARIABLE const
-        if "const questions"
-        const questions = [...]
-        questions = []; Constant variables can't be assigned a value,
+        if "const _questions"
+        const _questions = [...]
+        _questions = []; Constant variables can't be assigned a value,
      * */
     /**
         VARIABLE VALUE const
@@ -119,24 +142,14 @@ class _MyAppState extends State<MyApp> {
       ),
 
       /// body is accepting any widget tree below them.
-      body: _questionIndex < questions.length
-          ? Column(children: [
-              /// restructuring widget into smaller code,
-              /// in sdk: ">=2.12.0" --> need to tell Flutter this will never null then, used as String at the end
-              Question(questions[_questionIndex]['questionText']),
+      body: _questionIndex < _questions.length
 
-              /// NOTE: MAP LISTS inside WIDGET: need a dynamic answers - since we do have dynamic values
-              /// map thrown error w/out "as List<String>" bcs Dart can't read the answers inside the map string. then, cast it by telling Dart we expecting List of string
-              /// new ... = spread operator does take a list, then pull all the values out of it, then add them into individual values. mcm foreach!!
-              ...(questions[_questionIndex]['answers'] as List<String>)
-                  .map((answer) {
-                ///need to return a widget
-                return Answer(_answerQuestion, answer);
-              }).toList()
-            ])
-          : Center(
-              child: Text('You did it!'),
-            ),
+          ///NOTE : SPLITTING the app into Widgets are RECOMMENDED & GOOD PRACTICES!
+          ? Quiz(
+              answerQuestion: _answerQuestion,
+              questionIndex: _questionIndex,
+              questions: _questions)
+          : Result(_totalScore, _resetQuiz),
     ));
   }
 }
