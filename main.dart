@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_complete_guide/answer.dart';
 import 'package:flutter_complete_guide/question.dart';
 
 /// int num; --> will be an error. should set a def value
@@ -42,26 +43,72 @@ class MyApp extends StatefulWidget {
 
 /// Rules = 1 widget per 1 file
 
-///using StatefulWidget, need to create a STATE CLASS BY EXTENDING STATE
+///NOTE:  using StatefulWidget, need to create a STATE CLASS BY EXTENDING STATE
 /// The widget can be recreated, (UI RE-BUILD) that why we need state class seperated & can be recreated.
 /// STATE == LIVEDATA in Android (keep the UI States)
 class _MyAppState extends State<MyApp> {
-  //internal data / private data = used _ "underscore"
+  /// private class = _MyAppState
+  /// internal data / private property = used _ "underscore" ONLY CAN BE USED IN FILE
   var _questionIndex = 0;
 
-  void _answerQuestion() {
+  String _answerQuestion() {
     //setState notify the flutter that the internal state of this object has changed, required UI rebuild for those widget that hold this variable
     //func force flutter to re-build / re-render the widget, will not redraw the whole widget tree--> but only the Text widget !
     setState(() {
       _questionIndex = _questionIndex + 1;
     });
-    print('Ni jawapanya! 1');
+    print('Ni jawapanya!' + _questionIndex.toString());
     print(_questionIndex);
+    return 'Ni jawapanya!' + _questionIndex.toString();
   }
 
   @override
   Widget build(BuildContext context) {
-    var questions = ['What is your fav color?', 'What is your fav animal?'];
+    /// NOTE:  const VS final
+    /// const - KNOW THE VALUE & VALUE CANNOT BE CHANGED during COMPILE TIME CONST! NOT RUNTIMES CONST!
+    /// final - DON'T KNOW THE VALUE (not logged in code) but initial, dynamic value can be assigned during RUNTIME TIME then CANNOT BE CHANGED after that.
+    ///
+    /// const questions = variable into const, if we DONT WANT ASSIGN questions VALUE TO CHANGE
+    /// value into const =
+    const questions = [
+      ///the value of the map can be anything !
+      {
+        'questionText': 'What is your fav color?',
+        'answers': ['Black', 'Red', 'Blue']
+      },
+      {
+        'questionText': 'What is your fav animal?',
+        'answers': ['Rabbit', 'Snake', 'Dog']
+      },
+      {
+        'questionText': 'What is your fav hobbies?',
+        'answers': ['Football', 'Badminton', 'Dance', 'Bicycle', 'Racing']
+      }
+    ];
+
+    /** eg.
+        final names = ['Max', 'Manu', 'Julie'];
+        final result = names.map((name) => Text(name)).toList();
+
+        map() returns a new iterable (which is transformed to a list via toList())
+        where each value of the original list (names) is transformed as "described"
+        by the function you pass to map. In this case, each name is wrapped into
+        a Text() widget and then added to the new list which is stored in result.
+     * */
+
+    /** NOTE:
+        VARIABLE const
+        if "const questions"
+        const questions = [...]
+        questions = []; Constant variables can't be assigned a value,
+     * */
+    /**
+        VARIABLE VALUE const
+        var dummy = const ['Hello'];
+        dummy.add('value'); you cannot change the const value's
+        /// Unsupported operation: add !! error
+        print(dummy);
+     */
 
     ///Scaffold - make a base app frame
     return MaterialApp(
@@ -72,33 +119,24 @@ class _MyAppState extends State<MyApp> {
       ),
 
       /// body is accepting any widget tree below them.
-      body: Column(children: [
-        /// restructuring widget into smaller code,
-        Question(questions[_questionIndex]),
-        ElevatedButton(
-          /// hover the onPressed --> {required void Function()? onPressed} "it needs a function but don't return anything!"
-          /// when Flutter rendering this widget & onPressed, should not call with the function answerQuestion().
-          /// used pointer name of the func answerQuestion instead (not result). "tell the flutter when it pressed, then only call answerQuestion() "
-          onPressed: _answerQuestion,
-          child: Text("Jawapan 1"),
-        ),
-        ElevatedButton(
-          /// eg annonymous func - single line
-          onPressed: () => print('Jawapan no 2'),
-          child: Text("Jawapan 2"),
-          style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all(Colors.red),
-          ),
-        ),
-        ElevatedButton(
-          /// eg annonymous func
-          onPressed: () {
-            print('Jawapan no 3');
-            print('Jawapan no another 3');
-          },
-          child: Text("Jawapan 3"),
-        )
-      ]),
+      body: _questionIndex < questions.length
+          ? Column(children: [
+              /// restructuring widget into smaller code,
+              /// in sdk: ">=2.12.0" --> need to tell Flutter this will never null then, used as String at the end
+              Question(questions[_questionIndex]['questionText']),
+
+              /// NOTE: MAP LISTS inside WIDGET: need a dynamic answers - since we do have dynamic values
+              /// map thrown error w/out "as List<String>" bcs Dart can't read the answers inside the map string. then, cast it by telling Dart we expecting List of string
+              /// new ... = spread operator does take a list, then pull all the values out of it, then add them into individual values. mcm foreach!!
+              ...(questions[_questionIndex]['answers'] as List<String>)
+                  .map((answer) {
+                ///need to return a widget
+                return Answer(_answerQuestion, answer);
+              }).toList()
+            ])
+          : Center(
+              child: Text('You did it!'),
+            ),
     ));
   }
 }
